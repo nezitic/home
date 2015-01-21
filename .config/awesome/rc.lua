@@ -17,6 +17,27 @@ local drop      = require("scratchdrop")
 local lain      = require("lain")
 -- }}}
 
+-- Keyboard map indicator and changer
+kbdcfg = {}
+kbdcfg.cmd = "setxkbmap"
+kbdcfg.layout = { { "us", "" , "US " }, { "lt", "" , "LT " } } 
+kbdcfg.current = 1  -- us is our default layout
+kbdcfg.widget = wibox.widget.textbox()
+kbdcfg.widget:set_text(" " .. kbdcfg.layout[kbdcfg.current][3] .. " ")
+kbdcfg.switch = function ()
+  kbdcfg.current = kbdcfg.current % #(kbdcfg.layout) + 1
+  local t = kbdcfg.layout[kbdcfg.current]
+  kbdcfg.widget:set_text(" " .. t[3] .. " ")
+  os.execute( kbdcfg.cmd .. " " .. t[1] .. " " .. t[2] )
+end
+
+ -- Mouse bindings
+kbdcfg.widget:buttons(
+ awful.util.table.join(awful.button({ }, 1, function () kbdcfg.switch() end))
+)
+ -- Keyboard switches layout
+
+
 -- {{{ Error handling
 if awesome.startup_errors then
     naughty.notify({ preset = naughty.config.presets.critical,
@@ -437,6 +458,7 @@ for s = 1, screen.count() do
     bottom_right_layout:add(clock_icon)
     bottom_right_layout:add(clockwidget)
     bottom_right_layout:add(last)
+    bottom_right_layout:add(kbdcfg.widget)
 
     -- Now bring it all together (with the tasklist in the middle)
     bottom_layout = wibox.layout.align.horizontal()
@@ -466,7 +488,10 @@ root.buttons(awful.util.table.join(
 globalkeys = awful.util.table.join(
     -- Take a screenshot
     -- https://github.com/copycat-killer/dots/blob/master/bin/screenshot
-    awful.key({ altkey }, "p", function() os.execute("screenshot") end),
+    awful.key({ altkey }, "p", function() os.execute("scrot") end),
+    awful.key({ "Mod1" }, "Shift_L", function () kbdcfg.switch() end),
+
+
 
     -- Tag browsing
     awful.key({ modkey }, "Left",   awful.tag.viewprev       ),
